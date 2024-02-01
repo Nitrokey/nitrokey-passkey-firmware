@@ -1,0 +1,3 @@
+[submodule "nitrokey-3-firmware"]
+	path = nitrokey-3-firmware
+	url = https://github.com/Nitrokey/nitrokey-3-firmware

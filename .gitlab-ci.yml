@@ -1,0 +1,75 @@
+include:
+  - project: 'nitrokey/gitlab-ci'
+    file:
+      - 'common-jobs/common_jobs.yml'
+
+stages:
+  - pull-github
+  - build
+  - test
+  - deploy
+
+variables:
+  GIT_STRATEGY: clone             
+  GIT_DEPTH: 0                    
+  GIT_SUBMODULE_STRATEGY: recursive 
+  SCRIPTS_REPO: git@git.nitrokey.com:nitrokey/gitlab-ci.git
+  REPO_GROUP: nitrokey
+  REPO_NAME: nitrokey-passkey-firmware
+  MAIN_BRANCH: main 
+  IMAGE_NAME: nitrokey3
+  COMMON_UPDATE_DOCKER: "false"
+  COMMON_UPLOAD_FILES: "false"
+  COMMON_UPLOAD_NIGHTLY: "false"
+  LC_ALL: C.UTF-8
+  LANG: C.UTF-8
+
+metadata:
+  image: registry.git.nitrokey.com/nitrokey/nitrokey-3-firmware/nitrokey3:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  tags:
+    - docker
+  stage: build
+  script:
+    - make license.txt
+    - make manifest.json
+  after_script:
+    - mkdir -p artifacts
+    - cp commands.bd license.txt manifest.json artifacts || true
+    - git archive --format zip --output artifacts/nitrokey-passkey-firmware.zip --prefix nitrokey-passkey-firmware/ HEAD
+    - !reference [notify_github, script] # use notify_github from include
+  artifacts:
+    paths:
+      - artifacts
+
+check-firmware:
+  image: registry.git.nitrokey.com/nitrokey/nitrokey-3-firmware/nitrokey3:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+  tags:
+    - docker
+  stage: build
+  script:
+    - make -C nitrokey-3-firmware/runners/nkpk check
+    - make -C nitrokey-3-firmware/runners/nkpk check FEATURES=provisioner
+
+build-firmware:
+  image: registry.git.nitrokey.com/nitrokey/nitrokey-3-firmware/nitrokey3:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  tags:
+    - docker
+  stage: build
+  script:
+    - git describe --exact-match
+    - export VERSION=`git describe --exact-match`
+    - mkdir -p artifacts
+    - make -C nitrokey-3-firmware/runners/nkpk build
+    - cp nitrokey-3-firmware/runners/nkpk/artifacts/runner-nkpk.bin.ihex artifacts/firmware-nkpk-nrf52-$VERSION.ihex
+    - make -C nitrokey-3-firmware/runners/nkpk build FEATURES=provisioner
+    - cp nitrokey-3-firmware/runners/nkpk/artifacts/runner-nkpk.bin.ihex artifacts/provisioner-nkpk-nrf52-$VERSION.ihex
+  artifacts:
+    paths:
+      - artifacts

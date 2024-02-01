@@ -1,0 +1,8 @@
+{
+    "device": "Nitrokey Passkey",
+    "version": "@VERSION@",
+    "pynitrokey": "v0.4.35",
+    "images": {
+        "nrf52": "firmware-nkpk-nrf52-@VERSION@.zip"
+    }
+}
