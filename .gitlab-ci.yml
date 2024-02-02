@@ -33,6 +33,7 @@ metadata:
     - docker
   stage: build
   script:
+    - make commands.bd
     - make license.txt
     - make manifest.json
   after_script:
