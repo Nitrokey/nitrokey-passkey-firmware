@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.1.0-rc.1](https://github.com/Nitrokey/nitrokey-passkey-firmware/releases/tag/v1.1.0-rc.1) (2025-11-14)
+## [v1.1.0](https://github.com/Nitrokey/nitrokey-passkey-firmware/releases/tag/v1.1.0) (2026-02-12)
 
 - provisioner-app: Remove ReformatFilesystem command
 - fido-authenticator: Increase the maximum number of discoverable credentials (resident keys) to 100.
